@@ -18,14 +18,60 @@ pdf.append_page(page)
 page_layout = SingleColumnLayout(page)
 page_layout.vertical_margin = page.get_page_info().get_height() * Decimal(0.02)
 
+def get_information():
+    main_dict = [[{'issuername':"", 'issueraddress':"", 'issuerzip':"", 'issuercity':"",'issuerid':""}, {'clientgender':"", 'clientname':"", 'clientaddress':"", 'clientzip':"", 'clientcity':""}, {"date":"", "bank":"", "blz":"", "iban":""}], []]
+
+    for i in main_dict[0]:
+        for k in i:
+            typedvalue = input(k + ": ")
+            main_dict[0][main_dict[0].index(i)][k] = typedvalue
+        print('---------')
+    
+    return main_dict
+
+def bottom_payment_info(infoDict):
+    table = Table(number_of_columns=2, number_of_rows=4)
+    
+    table.add(Paragraph("Bankverbindung: "))
+    table.add(Paragraph(" "))
+    
+    for key, value in infoDict[2].items():
+        match key:
+            case "date":
+                pass
+            case "bank":
+                table.add(
+                    TableCell(
+                        Paragraph(value)
+                    )
+                )
+                table.add(
+                    TableCell(
+                        Paragraph(infoDict[0]['issuerid'])
+                    )
+                )
+            case _:
+                table.add(
+                    TableCell(
+                        Paragraph(key + ": " + value)
+                    )
+                )
+    
+    table.set_padding_on_all_cells(Decimal(2), Decimal(2), Decimal(2), Decimal(2))
+    table.no_borders()
+    return table
+
 def mainitem_table(item):
-    table = Table(number_of_rows=2+int(len(item)), number_of_columns=5, column_widths=[Decimal(1.1), Decimal(1.5), Decimal(4), Decimal(1.8), Decimal(2)])
+    table = Table(number_of_rows=2+len(item), number_of_columns=5, column_widths=[
+                  Decimal(1.1), Decimal(1.5), Decimal(4), Decimal(1.8), Decimal(2)])
     for i in ["Anzahl", "Einheit", "Bezeichnung", "Einzelpreis", "Gesamtpreis"]:
         table.add(
             TableCell(
                 Paragraph(i, font="Helvetica-Bold")
             )
         )
+
+    full_price_list = []
 
     for i in range(len(item)):
         current = item[i]
@@ -34,7 +80,8 @@ def mainitem_table(item):
                 case 0:
                     table.add(
                         TableCell(
-                            Paragraph(current[k], horizontal_alignment=Alignment.CENTERED)
+                            Paragraph(
+                                current[k], horizontal_alignment=Alignment.CENTERED)
                         )
                     )
                 case 2:
@@ -53,16 +100,18 @@ def mainitem_table(item):
                         else:
                             value_string += " €"
                     except:
-                        value_string += ",00 €" 
+                        value_string += ",00 €"
                     table.add(
                         TableCell(
-                            Paragraph(value_string, horizontal_alignment=Alignment.RIGHT)
+                            Paragraph(value_string,
+                                      horizontal_alignment=Alignment.RIGHT)
                         )
                     )
                 case _:
                     table.add(
                         TableCell(
-                            Paragraph(current[k], horizontal_alignment=Alignment.CENTERED)
+                            Paragraph(
+                                current[k], horizontal_alignment=Alignment.CENTERED)
                         )
                     )
 
@@ -77,76 +126,91 @@ def mainitem_table(item):
                 full_price += " €"
         except:
             full_price += ",00 €"
-        full_price_list = []
         full_price_list += [full_price]
         table.add(Paragraph(full_price, horizontal_alignment=Alignment.RIGHT))
 
-        table.add(
-            TableCell(
-                Paragraph("Gesamtbetrag: ", font="Helvetica-Bold"), col_span=4
-            )
+    table.add(
+        TableCell(
+            Paragraph("Gesamtbetrag: ", font="Helvetica-Bold"), col_span=4
         )
+    )
 
-        total = 0
-        for y in full_price_list:
-            total += float(y.replace(",", ".").replace("€", " "))
-        total = str(total).replace(".", ",")
-        temp = total.split(",")
-        try:
-            if len(temp[1]) == 1:
-                total += "0 €"
-            else:
-                total += " €"
-        except:
-            total += ",00 €"
-        
-        table.add(Paragraph(str(total), horizontal_alignment=Alignment.RIGHT))
+    total = 0
+    for y in full_price_list:
+        total += float(y.replace(",", ".").replace("€", " "))
+    total = str(total).replace(".", ",")
+    temp = total.split(",")
+    try:
+        if len(temp[1]) == 1:
+            total += "0 €"
+        else:
+            total += " €"
+    except:
+        total += ",00 €"
 
+    table.add(Paragraph(str(total), horizontal_alignment=Alignment.RIGHT))
 
-    table.set_padding_on_all_cells(Decimal(5), Decimal(10), Decimal(5), Decimal(5))
+    table.set_padding_on_all_cells(
+        Decimal(5), Decimal(10), Decimal(5), Decimal(5))
     return table
 
+
 def invoice_info(invoice_date):
-    table = Table(number_of_columns=2, number_of_rows=2, column_widths=[Decimal(6), Decimal(1)])
-    
-    table.add(Paragraph("Rechnungsdatum: ", horizontal_alignment=Alignment.RIGHT)).add(Paragraph(invoice_date, horizontal_alignment=Alignment.RIGHT))
-    table.add(Paragraph("Rechnungs-Nr.: ", horizontal_alignment=Alignment.RIGHT)).add(Paragraph(" "))
-    
-    table.set_padding_on_all_cells(Decimal(2), Decimal(2), Decimal(2), Decimal(2))
+    table = Table(number_of_columns=2, number_of_rows=2,
+                  column_widths=[Decimal(6), Decimal(1)])
+
+    table.add(Paragraph("Rechnungsdatum: ", horizontal_alignment=Alignment.RIGHT)).add(
+        Paragraph(invoice_date, horizontal_alignment=Alignment.RIGHT))
+    table.add(Paragraph("Rechnungs-Nr.: ",
+              horizontal_alignment=Alignment.RIGHT)).add(Paragraph(" "))
+
+    table.set_padding_on_all_cells(
+        Decimal(2), Decimal(2), Decimal(2), Decimal(2))
     table.no_borders()
     return table
 
 
 def issuer_table_top(issuer_name, issuer_address, issuer_plz, issuer_city, issuer_id):
-    table = Table(number_of_columns=2, number_of_rows=4, column_widths=[Decimal(1.7), Decimal(1.3)])
-    
-    table.add(Paragraph(" ")).add(Paragraph(issuer_name, horizontal_alignment=Alignment.RIGHT, font_size=Decimal(24), font="Helvetica"))
-    table.add(Paragraph(" ")).add(Paragraph(issuer_address, horizontal_alignment=Alignment.RIGHT))
-    table.add(Paragraph(" ")).add(Paragraph("{} {}".format(issuer_plz, issuer_city), horizontal_alignment=Alignment.RIGHT))
-    table.add(Paragraph(" ")).add(Paragraph("Steuernummer: {}".format(issuer_id), horizontal_alignment=Alignment.RIGHT))
-    
+    table = Table(number_of_columns=2, number_of_rows=4,
+                  column_widths=[Decimal(1.7), Decimal(1.3)])
+
+    table.add(Paragraph(" ")).add(Paragraph(
+        issuer_name, horizontal_alignment=Alignment.RIGHT, font_size=Decimal(24), font="Helvetica"))
+    table.add(Paragraph(" ")).add(
+        Paragraph(issuer_address, horizontal_alignment=Alignment.RIGHT))
+    table.add(Paragraph(" ")).add(Paragraph("{} {}".format(
+        issuer_plz, issuer_city), horizontal_alignment=Alignment.RIGHT))
+    table.add(Paragraph(" ")).add(Paragraph("Steuernummer: {}".format(
+        issuer_id), horizontal_alignment=Alignment.RIGHT))
+
     table.set_padding_on_all_cells(
         Decimal(2), Decimal(2), Decimal(2), Decimal(2))
     table.no_borders()
 
-    small_info = Paragraph("{} - {} - {} {}".format(issuer_name, issuer_address,  issuer_plz, issuer_city), border_bottom=True, font_size=Decimal(11)) 
+    small_info = Paragraph("{} - {} - {} {}".format(issuer_name, issuer_address,
+                           issuer_plz, issuer_city), border_bottom=True, font_size=Decimal(11))
 
     return [table, small_info]
 
+
 def receiver_table_information(rec_gender, rec_name, rec_address, rec_plz, rec_city):
     table = FlexTable(number_of_columns=1, number_of_rows=4)
-    
+
     table.add(Paragraph(rec_gender))
     table.add(Paragraph(rec_name))
     table.add(Paragraph(rec_address))
     table.add(Paragraph("{} {}".format(rec_plz, rec_city)))
-    
+
     table.set_padding_on_all_cells(
         Decimal(2), Decimal(2), Decimal(2), Decimal(2))
     table.no_borders()
     return table
 
+
 def main():
+
+    get_information()
+
     # Document Variables
     doc: Document = Document()
     page: Page = Page()
@@ -154,16 +218,22 @@ def main():
     layout: PageLayout = SingleColumnLayout(page)
 
     # Adding to layout
-    layout.add(issuer_table_top("Max Mustermann", "musterstrasse 12", "12345", "Musterstadt", "12/34/56789")[0])
-    layout.add(issuer_table_top("Max Mustermann", "musterstrasse 12", "12345", "Musterstadt", "12/34/56789")[1])
-    layout.add(receiver_table_information("Herr", "Max Mustermann", "musterstrasse 12", "12345", "Musterstadt"))
-    layout.add(invoice_info("19.12.2002"))
-    layout.add(Paragraph("Rechnung", font="Helvetica-Bold", font_size=Decimal(18)))
-    layout.add(mainitem_table([["1", "Pauschal", "Trockenbau", "2500"]]))
+    # layout.add(issuer_table_top("Max Mustermann", "musterstrasse 12",
+    #            "12345", "Musterstadt", "12/34/56789")[0])
+    # layout.add(issuer_table_top("Max Mustermann", "musterstrasse 12",
+    #            "12345", "Musterstadt", "12/34/56789")[1])
+    # layout.add(receiver_table_information("Herr", "Max Mustermann",
+    #            "musterstrasse 12", "12345", "Musterstadt"))
+    # layout.add(invoice_info("19.12.2002"))
+    # layout.add(Paragraph("Rechnung", font="Helvetica-Bold", font_size=Decimal(18)))
+    # layout.add(mainitem_table([["1", "Pauschal", "Trockenbau", "2500"], [
+    #            "1", "Pauschal", "Trockenbau", "2500"]]))
+    # layout.add(Paragraph("Die Umsatzsteuer für diese Leistung schuldet nach §13b UStG der Leistungempfänger"))
+    # layout.add(Paragraph("Wir danken für Ihren Auftrag."))
 
     # store
-    with open("output.pdf", "wb") as pdf_output_file:
-        PDF.dumps(pdf_output_file, doc)
+    # with open("output.pdf", "wb") as pdf_output_file:
+    #     PDF.dumps(pdf_output_file, doc)
 
 
 if __name__ == "__main__":
