@@ -3,11 +3,14 @@ from borb.pdf.canvas.layout.page_layout.multi_column_layout import SingleColumnL
 from borb.pdf.document.document import Document
 from borb.pdf.page.page import Page
 from borb.pdf.canvas.layout.page_layout.page_layout import PageLayout
+from borb.pdf.canvas.geometry.rectangle import Rectangle
+from borb.pdf.canvas.layout.annotation.square_annotation import SquareAnnotation
 from borb.pdf.canvas.layout.text.paragraph import Paragraph
 from borb.pdf.canvas.layout.layout_element import Alignment
 from borb.pdf.canvas.layout.table.fixed_column_width_table import FixedColumnWidthTable as Table
 from borb.pdf.canvas.layout.table.flexible_column_width_table import FlexibleColumnWidthTable as FlexTable
 from borb.pdf.canvas.layout.table.table import TableCell
+from borb.pdf.canvas.color.color import HexColor
 from borb.pdf.pdf import PDF
 
 pdf = Document()
@@ -18,23 +21,46 @@ pdf.append_page(page)
 page_layout = SingleColumnLayout(page)
 page_layout.vertical_margin = page.get_page_info().get_height() * Decimal(0.02)
 
+
 def get_information():
-    main_dict = [[{'issuername':"", 'issueraddress':"", 'issuerzip':"", 'issuercity':"",'issuerid':""}, {'clientgender':"", 'clientname':"", 'clientaddress':"", 'clientzip':"", 'clientcity':""}, {"date":"", "bank":"", "blz":"", "iban":""}], []]
+    sample = [[{'issuername': 'Orlioglo Vasili', 'issueraddress': 'Fichtenstrasse 24', 'issuerzip': '56626', 'issuercity': 'Andernach', 'issuerid': '29/125/43446'}, {'clientgender': 'Herr', 'clientname': 'Igor Jmurko', 'clientaddress': 'Korretsweg 26', 'clientzip': '56642', 'clientcity': 'Kruft'}, {'date': 'Feburar 2022', 'bank': 'Sparkasse', 'blz': '20010020', 'iban': 'DE99 2001 0020 1234 987654'}], [['1', 'Pauschal', 'Trockenbau Montage', '2500']]] 
+    main_dict = [[{'issuername': "", 'issueraddress': "", 'issuerzip': "", 'issuercity': "", 'issuerid': ""},
+                  {'clientgender': "", 'clientname': "", 'clientaddress': "",
+                      'clientzip': "", 'clientcity': ""},
+                  {"date": "", "bank": "", "blz": "", "iban": ""}],
+                 []]
+
+    debug = input('debug? ')
+    if debug == "y":
+        return sample
 
     for i in main_dict[0]:
         for k in i:
             typedvalue = input(k + ": ")
             main_dict[0][main_dict[0].index(i)][k] = typedvalue
         print('---------')
-    
+
+    x = "y"
+    while x == "y":
+        x = input("add an item? (y/n) ")
+        if x == "y":
+            item = []
+            for i in range(4):
+                a = input()
+                item.append(a)
+            main_dict[1].append(item)
+
+    print(main_dict)
+
     return main_dict
+
 
 def bottom_payment_info(infoDict):
     table = Table(number_of_columns=2, number_of_rows=4)
-    
+
     table.add(Paragraph("Bankverbindung: "))
     table.add(Paragraph(" "))
-    
+
     for key, value in infoDict[2].items():
         match key:
             case "date":
@@ -42,24 +68,31 @@ def bottom_payment_info(infoDict):
             case "bank":
                 table.add(
                     TableCell(
-                        Paragraph(value)
+                        Paragraph(value, font_size=Decimal(11))
                     )
                 )
                 table.add(
                     TableCell(
-                        Paragraph(infoDict[0]['issuerid'])
+                        Paragraph("Steuernummer: " + infoDict[0]['issuerid'], font_size=Decimal(11))
                     )
                 )
             case _:
                 table.add(
                     TableCell(
-                        Paragraph(key + ": " + value)
+                        Paragraph(str(key).upper() + ": " + value, font_size=Decimal(11))
                     )
                 )
-    
-    table.set_padding_on_all_cells(Decimal(2), Decimal(2), Decimal(2), Decimal(2))
+                table.add(
+                    TableCell(
+                        Paragraph(" ", font_size=Decimal(11))
+                    )
+                )
+
+    table.set_padding_on_all_cells(
+        Decimal(1), Decimal(1), Decimal(1), Decimal(1))
     table.no_borders()
     return table
+
 
 def mainitem_table(item):
     table = Table(number_of_rows=2+len(item), number_of_columns=5, column_widths=[
@@ -157,7 +190,7 @@ def mainitem_table(item):
 
 def invoice_info(invoice_date):
     table = Table(number_of_columns=2, number_of_rows=2,
-                  column_widths=[Decimal(6), Decimal(1)])
+                  column_widths=[Decimal(5.5), Decimal(1.2)])
 
     table.add(Paragraph("Rechnungsdatum: ", horizontal_alignment=Alignment.RIGHT)).add(
         Paragraph(invoice_date, horizontal_alignment=Alignment.RIGHT))
@@ -165,51 +198,52 @@ def invoice_info(invoice_date):
               horizontal_alignment=Alignment.RIGHT)).add(Paragraph(" "))
 
     table.set_padding_on_all_cells(
-        Decimal(2), Decimal(2), Decimal(2), Decimal(2))
+        Decimal(1), Decimal(1), Decimal(1), Decimal(1))
     table.no_borders()
     return table
 
 
-def issuer_table_top(issuer_name, issuer_address, issuer_plz, issuer_city, issuer_id):
+def issuer_table_top(issuerDict):
     table = Table(number_of_columns=2, number_of_rows=4,
-                  column_widths=[Decimal(1.7), Decimal(1.3)])
+                  column_widths=[Decimal(1), Decimal(2)])
 
     table.add(Paragraph(" ")).add(Paragraph(
-        issuer_name, horizontal_alignment=Alignment.RIGHT, font_size=Decimal(24), font="Helvetica"))
+        issuerDict['issuername'], horizontal_alignment=Alignment.RIGHT, font_size=Decimal(24), font="Helvetica"))
     table.add(Paragraph(" ")).add(
-        Paragraph(issuer_address, horizontal_alignment=Alignment.RIGHT))
+        Paragraph(issuerDict['issueraddress'], horizontal_alignment=Alignment.RIGHT))
     table.add(Paragraph(" ")).add(Paragraph("{} {}".format(
-        issuer_plz, issuer_city), horizontal_alignment=Alignment.RIGHT))
+        issuerDict['issuerzip'], issuerDict['issuercity']), horizontal_alignment=Alignment.RIGHT))
     table.add(Paragraph(" ")).add(Paragraph("Steuernummer: {}".format(
-        issuer_id), horizontal_alignment=Alignment.RIGHT))
+        issuerDict['issuerid']), horizontal_alignment=Alignment.RIGHT))
 
     table.set_padding_on_all_cells(
         Decimal(2), Decimal(2), Decimal(2), Decimal(2))
-    table.no_borders()
+    # table.no_borders()
 
-    small_info = Paragraph("{} - {} - {} {}".format(issuer_name, issuer_address,
-                           issuer_plz, issuer_city), border_bottom=True, font_size=Decimal(11))
+    small_info = Paragraph("{} - {} - {} {}".format(issuerDict['issuername'], issuerDict['issueraddress'],
+                           issuerDict['issuerzip'], issuerDict['issuercity']), border_bottom=True, font_size=Decimal(12))
 
     return [table, small_info]
 
 
-def receiver_table_information(rec_gender, rec_name, rec_address, rec_plz, rec_city):
+def receiver_table_information(clientDict):
     table = FlexTable(number_of_columns=1, number_of_rows=4)
 
-    table.add(Paragraph(rec_gender))
-    table.add(Paragraph(rec_name))
-    table.add(Paragraph(rec_address))
-    table.add(Paragraph("{} {}".format(rec_plz, rec_city)))
+    table.add(Paragraph(clientDict['clientgender']))
+    table.add(Paragraph(clientDict['clientname']))
+    table.add(Paragraph(clientDict['clientaddress']))
+    table.add(Paragraph("{} {}".format(
+        clientDict['clientzip'], clientDict['clientcity'])))
 
     table.set_padding_on_all_cells(
-        Decimal(2), Decimal(2), Decimal(2), Decimal(2))
+        Decimal(1), Decimal(1), Decimal(1), Decimal(1))
     table.no_borders()
     return table
 
 
 def main():
 
-    get_information()
+    mainDict = get_information()
 
     # Document Variables
     doc: Document = Document()
@@ -218,22 +252,32 @@ def main():
     layout: PageLayout = SingleColumnLayout(page)
 
     # Adding to layout
-    # layout.add(issuer_table_top("Max Mustermann", "musterstrasse 12",
-    #            "12345", "Musterstadt", "12/34/56789")[0])
-    # layout.add(issuer_table_top("Max Mustermann", "musterstrasse 12",
-    #            "12345", "Musterstadt", "12/34/56789")[1])
-    # layout.add(receiver_table_information("Herr", "Max Mustermann",
-    #            "musterstrasse 12", "12345", "Musterstadt"))
-    # layout.add(invoice_info("19.12.2002"))
-    # layout.add(Paragraph("Rechnung", font="Helvetica-Bold", font_size=Decimal(18)))
-    # layout.add(mainitem_table([["1", "Pauschal", "Trockenbau", "2500"], [
-    #            "1", "Pauschal", "Trockenbau", "2500"]]))
-    # layout.add(Paragraph("Die Umsatzsteuer für diese Leistung schuldet nach §13b UStG der Leistungempfänger"))
-    # layout.add(Paragraph("Wir danken für Ihren Auftrag."))
+    layout.add(issuer_table_top(mainDict[0][0])[0])
+    layout.add(issuer_table_top(mainDict[0][0])[1])
+    layout.add(receiver_table_information(mainDict[0][1]))
+    layout.add(invoice_info(mainDict[0][2]['date']))
+    layout.add(Paragraph("Rechnung", font="Helvetica-Bold", font_size=Decimal(18)))
+    layout.add(mainitem_table(mainDict[1]))
+    layout.add(Paragraph(
+        "Die Umsatzsteuer für diese Leistung schuldet nach §13b UStG der Leistungempfänger"))
+    layout.add(Paragraph("Wir danken für Ihren Auftrag."))
+
+    r: Rectangle = Rectangle(
+        Decimal(59),                # x: 0 + page_margin
+        Decimal(848 - 84 - 750),    # y: page_height - page_margin - height_of_textbox
+        Decimal(595 - 59 * 2),      # width: page_width - 2 * page_margin
+        Decimal(100),               # height
+    )
+
+    page.append_annotation(SquareAnnotation(r, stroke_color=HexColor("#ffffff")))
+
+    bottom_payment_info(mainDict[0]).layout(page, r)
+
+    filename = mainDict[0][0]['issuername'] + "-" + mainDict[0][1]['clientname'] + "-" + mainDict[0][2]['date'] + ".pdf"
 
     # store
-    # with open("output.pdf", "wb") as pdf_output_file:
-    #     PDF.dumps(pdf_output_file, doc)
+    with open(filename, "wb") as pdf_output_file:
+        PDF.dumps(pdf_output_file, doc)
 
 
 if __name__ == "__main__":
