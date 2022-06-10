@@ -23,7 +23,7 @@ page_layout.vertical_margin = page.get_page_info().get_height() * Decimal(0.02)
 
 
 def get_information():
-    sample = [[{'issuername': 'Orlioglo Vasili', 'issueraddress': 'Fichtenstrasse 24', 'issuerzip': '56626', 'issuercity': 'Andernach', 'issuerid': '29/125/43446'}, {'clientgender': 'Herr', 'clientname': 'Igor Jmurko', 'clientaddress': 'Korretsweg 26', 'clientzip': '56642', 'clientcity': 'Kruft'}, {'date': 'Feburar 2022', 'bank': 'Sparkasse', 'blz': '20010020', 'iban': 'DE99 2001 0020 1234 987654'}], [['1', 'Pauschal', 'Trockenbau Montage', '2500']]] 
+    sample = [[{'issuername': 'Stratulat Simion', 'issueraddress': 'Fichtenstr. 24', 'issuerzip': '56626', 'issuercity': 'Andernach', 'issuerid': '14 459 267 081'}, {'clientgender': 'Herr', 'clientname': 'Igor Jmurko', 'clientaddress': 'Korretsweg 26', 'clientzip': '56642', 'clientcity': 'Kruft'}, {'date': '27.05.2022', 'bank': 'KSK Mayen', 'blz': '-', 'iban': 'DE37 5765 0010 0198 5997 22'}], [['1', 'Pauschal', 'Fenstermontage BV. Mainz Hindenmithstr. 8', '1000']]] 
     main_dict = [[{'issuername': "", 'issueraddress': "", 'issuerzip': "", 'issuercity': "", 'issuerid': ""},
                   {'clientgender': "", 'clientname': "", 'clientaddress': "",
                       'clientzip': "", 'clientcity': ""},
@@ -76,6 +76,29 @@ def bottom_payment_info(infoDict):
                         Paragraph("Steuernummer: " + infoDict[0]['issuerid'], font_size=Decimal(11))
                     )
                 )
+            case "blz":
+                if value != " ":
+                    table.add(
+                        TableCell(
+                            Paragraph(str(key).upper() + ": " + value, font_size=Decimal(11))
+                        )
+                    )
+                    table.add(
+                        TableCell(
+                            Paragraph(" ", font_size=Decimal(11))
+                        )
+                    ) 
+                else:
+                    table.add(
+                        TableCell(
+                            Paragraph(" ", font_size=Decimal(11))
+                        )
+                    )
+                    table.add(
+                        TableCell(
+                            Paragraph(" ", font_size=Decimal(11))
+                        )
+                    )
             case _:
                 table.add(
                     TableCell(
@@ -218,7 +241,7 @@ def issuer_table_top(issuerDict):
 
     table.set_padding_on_all_cells(
         Decimal(2), Decimal(2), Decimal(2), Decimal(2))
-    # table.no_borders()
+    table.no_borders()
 
     small_info = Paragraph("{} - {} - {} {}".format(issuerDict['issuername'], issuerDict['issueraddress'],
                            issuerDict['issuerzip'], issuerDict['issuercity']), border_bottom=True, font_size=Decimal(12))
